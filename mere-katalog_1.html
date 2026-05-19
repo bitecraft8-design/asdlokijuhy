@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MERE — Digitalni katalog</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+:root{
+  --r:#E30613;
+  --rd:#b5000c;
+  --r2:#ff2233;
+  --y:#FFD100;
+  --yd:#e6b800;
+  --bg:#f5f5f5;
+  --bg2:#fff;
+  --t:#1a1a1a;
+  --m:#666;
+  --light:#fff5f5;
+  --br:rgba(0,0,0,.08);
+  --sh:0 4px 24px rgba(0,0,0,.09);
+  --sh2:0 12px 48px rgba(227,6,19,.18);
+  --rad:14px;
+  --rad2:8px;
+}
+body{
+  font-family:'Barlow',sans-serif;
+  background:var(--bg);
+  color:var(--t);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ===== SPLASH SCREEN ===== */
+#splash{
+  position:fixed;inset:0;z-index:9999;
+  background:#E30613;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:24px;
+  transition:opacity .6s ease, transform .6s ease;
+}
+#splash.hide{opacity:0;transform:scale(1.05);pointer-events:none}
+.splash-logo{animation:splashPop .6s cubic-bezier(.34,1.56,.64,1) both}
+.splash-text{color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:600;letter-spacing:3px;opacity:0;animation:fadeUp .5s .4s ease both}
+.splash-bar{width:180px;height:4px;background:rgba(255,255,255,.25);border-radius:999px;overflow:hidden;opacity:0;animation:fadeUp .4s .6s ease both}
+.splash-fill{height:100%;background:#FFD100;border-radius:999px;animation:fillBar 1.2s .7s ease both}
+@keyframes splashPop{from{opacity:0;transform:scale(.5) rotate(-10deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fillBar{from{width:0}to{width:100%}}
+
+/* ===== TOP BAR ===== */
+.topbar{background:#1a1a1a;color:#aaa;font-size:12.5px;font-weight:500;padding:7px 20px}
+.topbar-inner{max-width:1300px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.topbar-inner span{color:var(--y);font-weight:700}
+.topbar-inner a{color:#ccc;text-decoration:none;transition:.2s}
+.topbar-inner a:hover{color:var(--y)}
+
+/* ===== HEADER ===== */
+header{
+  position:sticky;top:0;z-index:200;
+  background:#fff;
+  border-bottom:3px solid var(--r);
+  box-shadow:0 2px 20px rgba(0,0,0,.12);
+}
+.header-main{max-width:1300px;margin:auto;padding:14px 20px;display:flex;align-items:center;gap:20px}
+.brand{display:flex;align-items:center;gap:14px;cursor:pointer;min-width:max-content;text-decoration:none}
+.brand:hover .mere-logo{filter:drop-shadow(0 0 12px rgba(227,6,19,.4))}
+.mere-logo{transition:.3s;animation:logoFloat 4s ease-in-out infinite}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+/* Search bar in header */
+.header-search{flex:1;max-width:500px;position:relative}
+.header-search input{
+  width:100%;border:2px solid #e0e0e0;border-radius:999px;
+  padding:11px 50px 11px 20px;font-size:14px;font-family:'Barlow',sans-serif;
+  transition:.25s;background:#f8f8f8;color:#222;
+}
+.header-search input:focus{border-color:var(--r);background:#fff;box-shadow:0 0 0 4px rgba(227,6,19,.08);outline:none}
+.header-search-btn{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  border:none;background:var(--r);color:#fff;border-radius:999px;
+  width:36px;height:36px;display:grid;place-items:center;cursor:pointer;
+  transition:.2s;font-size:15px;
+}
+.header-search-btn:hover{background:var(--rd);transform:translateY(-50%) scale(1.05)}
+
+/* Header right tools */
+.header-tools{display:flex;align-items:center;gap:10px;margin-left:auto}
+.city-selector{display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:999px;padding:8px 14px;border:1px solid #e0e0e0}
+.city-selector .city-label{font-size:12px;color:#888;font-weight:600;white-space:nowrap}
+.city-selector select{border:none;background:transparent;font-family:'Barlow',sans-serif;font-size:14px;font-weight:700;color:var(--r);outline:none;cursor:pointer}
+.cart-btn{
+  display:flex;align-items:center;gap:8px;
+  background:var(--r);color:#fff;border:none;border-radius:999px;
+  padding:11px 18px;font-family:'Barlow',sans-serif;font-weight:700;font-size:14px;
+  cursor:pointer;transition:.22s;position:relative;white-space:nowrap;
+}
+.cart-btn:hover{background:var(--rd);transform:translateY(-2px);box-shadow:0 8px 24px rgba(227,6,19,.35)}
+.cart-badge{
+  background:var(--y);color:#1a1a1a;border-radius:999px;
+  font-size:11px;font-weight:900;min-width:20px;height:20px;
+  display:grid;place-items:center;padding:0 5px;
+  animation:badgePop .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ===== NAV ===== */
+nav.main-nav{background:#E30613}
+.nav-inner{max-width:1300px;margin:auto;padding:0 20px;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-btn{
+  border:none;background:transparent;color:rgba(255,255,255,.85);
+  font-family:'Barlow',sans-serif;font-weight:600;font-size:14px;
+  padding:12px 16px;cursor:pointer;transition:.2s;white-space:nowrap;
+  position:relative;letter-spacing:.3px;
+}
+.nav-btn::after{
+  content:'';position:absolute;bottom:0;left:50%;right:50%;
+  height:3px;background:#FFD100;transition:.25s;
+}
+.nav-btn:hover{color:#fff;background:rgba(255,255,255,.1)}
+.nav-btn:hover::after,.nav-btn.active::after{left:10%;right:10%}
+.nav-btn.active{color:#fff;background:rgba(0,0,0,.15);font-weight:700}
+
+/* ===== LAYOUT ===== */
+.container{max-width:1300px;margin:auto;padding:28px 20px 80px}
+.page{display:none}
+.page.active{display:block;animation:pageIn .4s ease both}
+@keyframes pageIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== HERO ===== */
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-bottom:24px}
+.hero-main{
+  background:linear-gradient(135deg,#E30613 0%,#c5000e 60%,#9d0009 100%);
+  border-radius:var(--rad);overflow:hidden;
+  min-height:440px;display:flex;align-items:center;
+  position:relative;padding:48px;
+}
+.hero-bg-pattern{
+  position:absolute;inset:0;overflow:hidden;pointer-events:none;
+}
+.hero-bg-pattern span{
+  position:absolute;border-radius:50%;background:rgba(255,255,255,.05);
+  animation:heroOrb 8s ease-in-out infinite;
+}
+.hero-bg-pattern span:nth-child(1){width:320px;height:320px;right:-100px;top:-100px;animation-delay:0s}
+.hero-bg-pattern span:nth-child(2){width:200px;height:200px;right:80px;bottom:-60px;animation-delay:-2s}
+.hero-bg-pattern span:nth-child(3){width:100px;height:100px;left:40px;bottom:40px;animation-delay:-4s;background:rgba(255,209,0,.12)}
+@keyframes heroOrb{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.1) translateY(-20px)}}
+.hero-main-emoji{
+  position:absolute;right:52px;bottom:40px;font-size:100px;
+  opacity:.15;animation:floatEmoji 5s ease-in-out infinite;
+  transform-origin:center bottom;
+}
+@keyframes floatEmoji{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(3deg) scale(1.05)}}
+.hero-content{position:relative;z-index:2;color:#fff}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;
+  margin-bottom:20px;backdrop-filter:blur(10px);
+  animation:eyebrowPop .5s .2s ease both;opacity:0;
+}
+@keyframes eyebrowPop{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.hero h1{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(40px,5.5vw,70px);font-weight:900;
+  line-height:.95;letter-spacing:-1px;color:#fff;
+  margin-bottom:18px;
+  animation:heroTitleIn .6s .15s ease both;opacity:0;
+}
+@keyframes heroTitleIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.hero h1 .yellow{color:#FFD100}
+.hero-sub{
+  color:rgba(255,255,255,.85);font-size:16px;line-height:1.6;
+  max-width:500px;margin-bottom:28px;
+  animation:heroSubIn .6s .3s ease both;opacity:0;
+}
+@keyframes heroSubIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;animation:heroActionsIn .5s .45s ease both;opacity:0}
+@keyframes heroActionsIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* Hero side panel */
+.hero-side{
+  border-radius:var(--rad);overflow:hidden;
+  display:flex;flex-direction:column;gap:12px;
+}
+.hero-side-top{
+  background:#fff;border-radius:var(--rad);padding:24px;
+  border:1px solid #e8e8e8;flex:1;
+  animation:sideIn .5s .2s ease both;opacity:0;
+}
+@keyframes sideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.hero-side-bottom{
+  background:var(--y);border-radius:var(--rad);padding:20px;
+  animation:sideIn .5s .35s ease both;opacity:0;
+}
+.side-label{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:8px}
+.side-city{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--r);margin-bottom:4px}
+.ticker-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.ticker-item{
+  display:flex;justify-content:space-between;align-items:center;
+  background:#f8f8f8;border-radius:10px;padding:10px 13px;
+  border-left:3px solid var(--r);
+  animation:tickerIn .4s ease both;
+}
+.ticker-item:nth-child(1){animation-delay:.5s}
+.ticker-item:nth-child(2){animation-delay:.6s}
+.ticker-item:nth-child(3){animation-delay:.7s}
+@keyframes tickerIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.ticker-name{font-size:13px;font-weight:600}
+.ticker-price{font-size:14px;font-weight:800;color:var(--r)}
+.discount-badge{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:56px;font-weight:900;color:#1a1a1a;
+  line-height:1;display:block;
+}
+.discount-sub{font-size:13px;font-weight:600;color:#555;margin-top:4px}
+
+/* ===== BUTTONS ===== */
+.btn{
+  border:none;border-radius:999px;padding:13px 22px;
+  font-family:'Barlow',sans-serif;font-weight:700;font-size:14px;
+  cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+  transition:.22s;letter-spacing:.3px;
+}
+.btn:hover{transform:translateY(-3px)}
+.btn-primary{background:#fff;color:var(--r)}
+.btn-primary:hover{box-shadow:0 10px 28px rgba(255,255,255,.3)}
+.btn-secondary{background:#FFD100;color:#1a1a1a}
+.btn-secondary:hover{background:#e6b800;box-shadow:0 10px 28px rgba(255,209,0,.4)}
+.btn-dark{background:#1a1a1a;color:#fff}
+.btn-dark:hover{background:#333;box-shadow:0 10px 28px rgba(0,0,0,.25)}
+.btn-outline{background:transparent;color:var(--r);border:2px solid var(--r)}
+.btn-outline:hover{background:var(--r);color:#fff}
+.btn-red{background:var(--r);color:#fff}
+.btn-red:hover{background:var(--rd);box-shadow:0 10px 28px rgba(227,6,19,.35)}
+.btn-sm{padding:9px 16px;font-size:13px}
+
+/* ===== QUICK LINKS ===== */
+.quick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:32px}
+.quick-link{
+  background:#fff;border-radius:var(--rad);padding:20px 16px;
+  text-align:center;cursor:pointer;border:1px solid #e8e8e8;
+  transition:.24s;position:relative;overflow:hidden;
+}
+.quick-link::before{
+  content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--r),var(--rd));
+  opacity:0;transition:.3s;
+}
+.quick-link:hover{transform:translateY(-6px);box-shadow:var(--sh2);border-color:var(--r)}
+.quick-link:hover::before{opacity:.06}
+.quick-link:hover .qlink-icon{background:var(--r);transform:scale(1.1) rotate(5deg)}
+.quick-link:hover .qlink-icon span{filter:grayscale(0)}
+.qlink-icon{
+  width:52px;height:52px;background:#f5f5f5;border-radius:14px;
+  display:grid;place-items:center;margin:0 auto 12px;
+  font-size:26px;transition:.3s;
+}
+.qlink-icon span{filter:grayscale(.2);display:block;transition:.3s}
+.quick-link strong{display:block;font-size:15px;font-weight:700;position:relative}
+.quick-link p{color:#888;font-size:12px;margin-top:4px;line-height:1.4;position:relative}
+
+/* ===== SECTION HEADERS ===== */
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
+.section-head h2{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(26px,3vw,36px);font-weight:800;letter-spacing:-.5px;
+}
+.section-head h2 span{color:var(--r)}
+.section-line{height:3px;background:linear-gradient(90deg,var(--r),var(--y),transparent);border-radius:999px;margin-bottom:20px}
+.page-head{margin-bottom:24px}
+.page-head h1{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(32px,4vw,50px);font-weight:900;letter-spacing:-1px;
+  margin-bottom:6px;
+}
+.page-head h1 span{color:var(--r)}
+.page-head p{color:var(--m);font-size:15px;line-height:1.6}
+
+/* ===== PRODUCT CARDS ===== */
+.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.product-card{
+  background:#fff;border-radius:var(--rad);border:1px solid #ebebeb;
+  overflow:hidden;display:flex;flex-direction:column;
+  transition:.28s;cursor:default;
+  animation:cardIn .4s ease both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.product-card:hover{transform:translateY(-8px);box-shadow:0 20px 50px rgba(0,0,0,.12);border-color:#ddd}
+.product-card:hover .pcard-img{background:linear-gradient(135deg,#fff0f0,#fff8c2)}
+.product-card:hover .pcard-emoji{transform:scale(1.2) rotate(5deg)}
+.pcard-img{
+  height:160px;background:linear-gradient(135deg,#fafafa,#f5f5f5);
+  display:grid;place-items:center;position:relative;overflow:hidden;
+  transition:.3s;
+}
+.pcard-img::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.6),transparent 70%);
+  transform:translateX(-100%);transition:.5s;
+}
+.product-card:hover .pcard-img::after{transform:translateX(100%)}
+.pcard-emoji{font-size:58px;display:block;transition:.4s cubic-bezier(.34,1.56,.64,1);position:relative;z-index:1}
+.pcard-badges{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:2}
+.badge{border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:3px}
+.badge-sale{background:var(--r);color:#fff;animation:badgePulse 2.5s ease-in-out infinite}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(227,6,19,.4)}50%{box-shadow:0 0 0 6px rgba(227,6,19,0)}}
+.badge-avail{background:#1a1a1a;color:#fff}
+.badge-unavail{background:#999;color:#fff}
+.badge-green{background:#16a34a;color:#fff}
+.pcard-body{padding:15px;display:flex;flex-direction:column;gap:8px;flex:1}
+.pcard-cat{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.5px}
+.pcard-name{font-size:16px;font-weight:700;line-height:1.2;color:#1a1a1a}
+.pcard-desc{font-size:12.5px;color:#888;line-height:1.45;flex:1}
+.pcard-footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:10px;border-top:1px solid #f0f0f0}
+.price-block{}
+.price-old{font-size:12px;color:#bbb;text-decoration:line-through;line-height:1}
+.price-now{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--r);letter-spacing:-.5px}
+.add-btn{
+  background:#1a1a1a;color:#fff;border:none;border-radius:10px;
+  padding:10px 14px;font-family:'Barlow',sans-serif;font-weight:700;font-size:13px;
+  cursor:pointer;transition:.22s;white-space:nowrap;
+}
+.add-btn:hover{background:var(--r);transform:scale(1.05)}
+.add-btn:active{transform:scale(.95)}
+
+/* ===== CATEGORIES ===== */
+.categories-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.cat-card{
+  background:#fff;border-radius:var(--rad);padding:22px 18px;
+  cursor:pointer;border:1px solid #ebebeb;text-align:center;
+  transition:.26s;overflow:hidden;position:relative;
+}
+.cat-card::before{
+  content:'';position:absolute;bottom:-40px;right:-40px;
+  width:100px;height:100px;background:rgba(227,6,19,.06);
+  border-radius:50%;transition:.3s;
+}
+.cat-card:hover::before{transform:scale(2.5)}
+.cat-card:hover{transform:translateY(-7px);box-shadow:var(--sh2);border-color:rgba(227,6,19,.2)}
+.cat-card:hover .cat-icon{background:var(--r);transform:rotate(10deg) scale(1.1)}
+.cat-icon{
+  width:56px;height:56px;background:#f5f5f5;border-radius:16px;
+  display:grid;place-items:center;font-size:28px;
+  margin:0 auto 14px;transition:.35s;
+}
+.cat-card h3{font-size:15px;font-weight:700;margin-bottom:6px;position:relative}
+.cat-card p{font-size:12px;color:#888;line-height:1.4;position:relative}
+.cat-count{
+  display:inline-block;background:var(--r);color:#fff;
+  border-radius:999px;font-size:11px;font-weight:800;
+  padding:3px 10px;margin-top:10px;position:relative;
+}
+
+/* ===== FILTER PANEL ===== */
+.filter-bar{
+  background:#fff;border-radius:var(--rad);padding:20px;
+  margin-bottom:18px;border:1px solid #ebebeb;
+  display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;
+}
+.filter-input,.filter-select{
+  border:1.5px solid #e0e0e0;border-radius:10px;
+  padding:12px 16px;font-family:'Barlow',sans-serif;font-size:14px;
+  transition:.2s;outline:none;color:#222;background:#fff;
+}
+.filter-input:focus,.filter-select:focus{border-color:var(--r);box-shadow:0 0 0 3px rgba(227,6,19,.08)}
+
+/* ===== LOCATIONS ===== */
+.locations-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.loc-card{
+  background:#fff;border-radius:var(--rad);border:1px solid #ebebeb;overflow:hidden;
+  transition:.26s;
+}
+.loc-card:hover{transform:translateY(-6px);box-shadow:var(--sh2)}
+.loc-header{background:var(--r);padding:22px 24px;position:relative;overflow:hidden}
+.loc-header::after{content:'📍';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.2}
+.loc-header h2{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff}
+.loc-header p{color:rgba(255,255,255,.8);font-size:13px;margin-top:4px}
+.loc-body{padding:22px 24px}
+.loc-info-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;align-items:flex-start}
+.loc-info-row:last-of-type{border-bottom:none}
+.loc-info-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.loc-info-label{font-size:12px;color:#888;font-weight:600}
+.loc-info-val{font-size:14px;font-weight:600;color:#1a1a1a}
+.loc-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.loc-stat{background:#f8f8f8;border-radius:10px;padding:12px;text-align:center}
+.loc-stat strong{display:block;font-size:22px;font-weight:900;color:var(--r);font-family:'Barlow Condensed',sans-serif}
+.loc-stat span{font-size:11px;color:#888;font-weight:600}
+.loc-actions{display:flex;gap:10px;flex-wrap:wrap;padding-top:12px}
+
+/* ===== ABOUT / INFO ===== */
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:24px}
+.info-card{background:#fff;border-radius:var(--rad);padding:28px;border:1px solid #ebebeb}
+.info-card h2{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;margin-bottom:14px;letter-spacing:-.5px}
+.info-card p{color:#666;line-height:1.7;margin-bottom:12px;font-size:15px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat-card{background:#fff;border-radius:var(--rad);padding:22px;text-align:center;border:1px solid #ebebeb;transition:.24s}
+.stat-card:hover{transform:translateY(-4px);box-shadow:var(--sh2);border-color:rgba(227,6,19,.2)}
+.stat-num{font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;color:var(--r);display:block;line-height:1}
+.stat-label{font-size:13px;color:#888;font-weight:600;margin-top:4px}
+
+/* ===== CART ===== */
+.cart-wrap{background:#fff;border-radius:var(--rad);padding:26px;border:1px solid #ebebeb}
+.cart-items{list-style:none;display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.cart-item{
+  background:#f8f8f8;border-radius:12px;padding:14px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  animation:cartItemIn .3s ease both;border:1px solid #ebebeb;
+}
+@keyframes cartItemIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.cart-item-info strong{display:block;font-weight:700;margin-bottom:3px}
+.cart-item-info small{color:#888;font-size:13px}
+.remove-btn{background:#fff0f0;color:var(--r);border:1px solid #fdd;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;transition:.2s;font-size:13px}
+.remove-btn:hover{background:var(--r);color:#fff;border-color:var(--r)}
+.cart-total{background:linear-gradient(135deg,#fff8f8,#fff5e5);border:1px solid #fdd;border-radius:12px;padding:16px 20px;margin:16px 0;font-weight:800;font-size:18px;color:#1a1a1a}
+.cart-total span{color:var(--r)}
+.empty-state{text-align:center;padding:40px;color:#aaa;border:2px dashed #e8e8e8;border-radius:var(--rad)}
+.empty-state .empty-icon{font-size:48px;display:block;margin-bottom:12px;opacity:.4}
+
+/* ===== FLOATING CART ===== */
+.float-cart-btn{
+  position:fixed;right:22px;bottom:22px;z-index:300;
+  background:#1a1a1a;color:#fff;border:none;border-radius:999px;
+  padding:14px 20px;font-family:'Barlow',sans-serif;font-weight:700;font-size:14px;
+  cursor:pointer;box-shadow:0 12px 36px rgba(0,0,0,.28);
+  display:flex;align-items:center;gap:8px;transition:.22s;
+}
+.float-cart-btn:hover{background:var(--r);transform:translateY(-4px);box-shadow:0 18px 45px rgba(227,6,19,.4)}
+.float-cart-btn.bounce{animation:cartBounce .4s ease}
+@keyframes cartBounce{0%,100%{transform:scale(1)}30%{transform:scale(1.15) translateY(-4px)}60%{transform:scale(.95)}}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:#1a1a1a;color:#fff;padding:12px 22px;border-radius:999px;
+  z-index:400;opacity:0;pointer-events:none;transition:.28s;
+  font-weight:600;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-icon{font-size:16px}
+
+/* ===== PROMO BANNER ===== */
+.promo-banner{
+  background:linear-gradient(135deg,#FFD100,#ffc000);
+  border-radius:var(--rad);padding:22px 28px;margin-bottom:24px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;
+  overflow:hidden;position:relative;
+}
+.promo-banner::after{content:'🌟';position:absolute;right:100px;font-size:80px;opacity:.15;animation:starSpin 8s linear infinite}
+@keyframes starSpin{to{transform:rotate(360deg)}}
+.promo-banner h3{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:#1a1a1a}
+.promo-banner p{color:#555;font-size:14px;margin-top:4px}
+
+/* ===== FOOTER ===== */
+footer{background:#1a1a1a;color:#fff;padding:40px 20px}
+.footer-inner{max-width:1300px;margin:auto}
+.footer-top{display:flex;justify-content:space-between;align-items:center;padding-bottom:24px;border-bottom:1px solid #333;margin-bottom:24px}
+.footer-bottom{text-align:center;color:#666;font-size:13px}
+
+/* ===== SCROLL REVEAL ===== */
+.reveal{opacity:0;transform:translateY(22px);transition:.65s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1100px){
+  .products-grid,.categories-grid{grid-template-columns:repeat(3,1fr)}
+  .quick-grid{grid-template-columns:repeat(3,1fr)}
+  .hero{grid-template-columns:1fr}
+  .hero-side{flex-direction:row}
+  .hero-side-top,.hero-side-bottom{flex:1}
+}
+@media(max-width:768px){
+  .header-main{flex-wrap:wrap}
+  .header-search{order:3;max-width:100%}
+  .products-grid{grid-template-columns:repeat(2,1fr)}
+  .categories-grid{grid-template-columns:repeat(2,1fr)}
+  .quick-grid{grid-template-columns:repeat(2,1fr)}
+  .stats-grid,.info-grid,.locations-grid{grid-template-columns:1fr}
+  .filter-bar{grid-template-columns:1fr}
+  .hero-side{flex-direction:column}
+  .hero-main{padding:28px;min-height:360px}
+}
+@media(max-width:480px){
+  .products-grid{grid-template-columns:1fr}
+  .categories-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ===== WAVE DIVIDER ===== */
+.wave-divider{
+  height:4px;background:linear-gradient(90deg,var(--r),var(--y),var(--r));
+  background-size:200% 100%;animation:waveSlide 3s linear infinite;
+  margin-bottom:24px;border-radius:999px;
+}
+@keyframes waveSlide{0%{background-position:0% 0}100%{background-position:200% 0}}
+
+/* ===== SKELETON ===== */
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">
+    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="120" rx="24" fill="#FFD100"/>
+      <text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle"
+            font-family="'Barlow Condensed',sans-serif" font-weight="900" font-size="52" fill="#E30613">MERE</text>
+    </svg>
+  </div>
+  <div class="splash-text">DIGITALNI KATALOG</div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <span>🔥 Demo digitalni katalog — cene, akcije i dostupnost po gradu</span>
+    <div style="display:flex;gap:16px">
+      <span>⏰ Pon–Ned: 08:00–21:00</span>
+      <a href="#">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-main">
+    <!-- MERE LOGO -->
+    <div class="brand" onclick="goToPage('home')">
+      <svg class="mere-logo" width="58" height="58" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#FFD100"/>
+            <stop offset="100%" style="stop-color:#ffc000"/>
+          </linearGradient>
+          <filter id="logoShadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.2)"/>
+          </filter>
+        </defs>
+        <rect width="120" height="120" rx="22" fill="url(#logoGrad)" filter="url(#logoShadow)"/>
+        <!-- M shape -->
+        <path d="M16 85 L16 35 L35 60 L60 28 L85 60 L104 35 L104 85" 
+              stroke="#E30613" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <!-- Bottom accent line -->
+        <rect x="16" y="95" width="88" height="8" rx="4" fill="#E30613"/>
+      </svg>
+      <div>
+        <strong style="display:block;font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#E30613;letter-spacing:-1px;line-height:1">MERE</strong>
+        <span style="display:block;font-size:11px;color:#888;font-weight:600;letter-spacing:1px;text-transform:uppercase">digitalni katalog</span>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="header-search">
+      <input type="text" id="globalSearch" placeholder="Pretraži proizvode, npr. mleko, kafa, hleb..." oninput="handleGlobalSearch()"/>
+      <button class="header-search-btn" onclick="handleGlobalSearch()">🔍</button>
+    </div>
+
+    <!-- Tools -->
+    <div class="header-tools">
+      <div class="city-selector">
+        <span class="city-label">📍 Grad:</span>
+        <select id="citySelect" onchange="changeCity(this.value)">
+          <option value="kraljevo">Kraljevo</option>
+          <option value="cacak">Čačak</option>
+        </select>
+      </div>
+      <button class="cart-btn" onclick="goToPage('cart')">
+        🛒 Lista
+        <span class="cart-badge" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="main-nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" data-page="home" onclick="goToPage('home')">🏠 Početna</button>
+      <button class="nav-btn" data-page="offers" onclick="goToPage('offers')">🔥 Akcije</button>
+      <button class="nav-btn" data-page="products" onclick="goToPage('products')">🛒 Proizvodi</button>
+      <button class="nav-btn" data-page="categories" onclick="goToPage('categories')">📂 Kategorije</button>
+      <button class="nav-btn" data-page="locations" onclick="goToPage('locations')">📍 Lokacije</button>
+      <button class="nav-btn" data-page="about" onclick="goToPage('about')">ℹ️ O nama</button>
+      <button class="nav-btn" data-page="space" onclick="goToPage('space')">🤝 Saradnja</button>
+    </div>
+  </nav>
+</header>
+
+<main class="container">
+
+  <!-- HOME PAGE -->
+  <section class="page active" id="page-home">
+    <!-- Hero -->
+    <div class="hero reveal">
+      <div class="hero-main">
+        <div class="hero-bg-pattern">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="hero-main-emoji">🛒</div>
+        <div class="hero-content">
+          <div class="hero-eyebrow">✨ Uvek sveže cene i akcije</div>
+          <h1>Sve cene,<br><span class="yellow">sve akcije,</span><br>odmah.</h1>
+          <p class="hero-sub">Izaberi grad, pronađi šta ti treba, napravi listu — i idi u MERE. Bez čekanja, bez iznenađenja na kasi.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="goToPage('products')">🛒 Pogledaj proizvode</button>
+            <button class="btn btn-secondary" onclick="goToPage('offers')">🔥 Akcije za <span id="heroCityButton">Kraljevo</span></button>
+            <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="goToPage('locations')">📍 Lokacije</button>
+          </div>
+        </div>
+      </div>
+      <div class="hero-side">
+        <div class="hero-side-top">
+          <div class="side-label">Trenutno gledate</div>
+          <div class="side-city" id="heroCityName">Kraljevo</div>
+          <div class="side-label" style="margin-top:14px">🔥 Top akcije danas</div>
+          <ul class="ticker-list" id="heroTicker"></ul>
+        </div>
+        <div class="hero-side-bottom">
+          <div class="side-label" style="color:#7a5f00">Uštedite do</div>
+          <span class="discount-badge">-35%</span>
+          <div class="discount-sub">na odabrane proizvode ove nedelje</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promo banner -->
+    <div class="promo-banner reveal">
+      <div>
+        <h3>🎯 Nedeljne akcije su stigle!</h3>
+        <p>Proverite sve snižene proizvode za <span id="promoCity">Kraljevo</span> i sačuvajte listu za kupovinu.</p>
+      </div>
+      <button class="btn btn-dark" onclick="goToPage('offers')">Pogledaj akcije →</button>
+    </div>
+
+    <!-- Quick links -->
+    <div class="wave-divider"></div>
+    <div class="quick-grid reveal">
+      <div class="quick-link" onclick="goToPage('offers')">
+        <div class="qlink-icon"><span>🔥</span></div>
+        <strong>Akcije</strong>
+        <p>Sniženi proizvodi za tvoj grad</p>
+      </div>
+      <div class="quick-link" onclick="goToPage('products')">
+        <div class="qlink-icon"><span>🔎</span></div>
+        <strong>Pretraga</strong>
+        <p>Brzo pronađi šta ti treba</p>
+      </div>
+      <div class="quick-link" onclick="goToPage('categories')">
+        <div class="qlink-icon"><span>📂</span></div>
+        <strong>Kategorije</strong>
+        <p>Pregled po vrstama proizvoda</p>
+      </div>
+      <div class="quick-link" onclick="goToPage('locations')">
+        <div class="qlink-icon"><span>📍</span></div>
+        <strong>Lokacije</strong>
+        <p>Nađi MERE u svom gradu</p>
+      </div>
+      <div class="quick-link" onclick="goToPage('cart')">
+        <div class="qlink-icon"><span>📝</span></div>
+        <strong>Moja lista</strong>
+        <p>Tvoj spisak za kupovinu</p>
+      </div>
+    </div>
+
+    <!-- Featured offers -->
+    <div class="section-head reveal">
+      <div>
+        <h2>Akcije za <span id="homeCityTitle">Kraljevo</span></h2>
+        <p style="color:#888;font-size:14px;margin-top:4px">Izdvojene ponude ovog trenutka</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="goToPage('offers')">Sve akcije →</button>
+    </div>
+    <div class="section-line"></div>
+    <div class="products-grid reveal" id="homeOffersBox"></div>
+  </section>
+
+  <!-- OFFERS PAGE -->
+  <section class="page" id="page-offers">
+    <div class="page-head reveal">
+      <h1>Akcije — <span id="offersCityTitle">Kraljevo</span></h1>
+      <p>Svi sniženi i akcijski proizvodi za izabrani grad</p>
+    </div>
+    <div class="filter-bar reveal">
+      <input class="filter-input" id="offerSearch" placeholder="🔍 Pretraži akcije..." oninput="renderOffers()"/>
+      <select class="filter-select" id="offerCategory" onchange="renderOffers()"></select>
+      <button class="btn btn-red btn-sm" onclick="clearOfferFilters()">Očisti filtere</button>
+      <button class="btn btn-outline btn-sm" onclick="goToPage('products')">Svi proizvodi</button>
+    </div>
+    <div class="section-line"></div>
+    <div class="products-grid reveal" id="offersBox"></div>
+  </section>
+
+  <!-- PRODUCTS PAGE -->
+  <section class="page" id="page-products">
+    <div class="page-head reveal">
+      <h1>Proizvodi — <span id="productsCityTitle">Kraljevo</span></h1>
+      <p>Kompletna ponuda, cene i dostupnost u vašem gradu</p>
+    </div>
+    <div class="filter-bar reveal">
+      <input class="filter-input" id="productSearch" placeholder="🔍 Pretraži, npr. mleko, ulje, kafa..." oninput="renderProducts()"/>
+      <select class="filter-select" id="productCategory" onchange="renderProducts()"></select>
+      <select class="filter-select" id="productMode" onchange="renderProducts()">
+        <option value="available">Samo dostupno</option>
+        <option value="sale">Samo akcije</option>
+        <option value="all">Sve iz baze</option>
+      </select>
+      <button class="btn btn-red btn-sm" onclick="clearProductFilters()">Očisti filtere</button>
+    </div>
+    <div class="section-line"></div>
+    <div class="products-grid reveal" id="productsBox"></div>
+  </section>
+
+  <!-- CATEGORIES PAGE -->
+  <section class="page" id="page-categories">
+    <div class="page-head reveal">
+      <h1>Kategorije — <span id="categoriesCityTitle">Kraljevo</span></h1>
+      <p>Kliknite na kategoriju za prikaz dostupnih proizvoda</p>
+    </div>
+    <div class="section-line"></div>
+    <div class="categories-grid reveal" id="categoriesBox"></div>
+  </section>
+
+  <!-- LOCATIONS PAGE -->
+  <section class="page" id="page-locations">
+    <div class="page-head reveal">
+      <h1>Naše <span style="color:var(--r)">lokacije</span></h1>
+      <p>Pronađite MERE u vašem gradu</p>
+    </div>
+    <div class="section-line"></div>
+    <div class="locations-grid reveal" id="locationsBox"></div>
+  </section>
+
+  <!-- ABOUT PAGE -->
+  <section class="page" id="page-about">
+    <div class="page-head reveal">
+      <h1>O <span style="color:var(--r)">nama</span></h1>
+      <p>MERE — pametan izbor za svakodnevnu kupovinu</p>
+    </div>
+    <div class="section-line"></div>
+    <div class="info-grid reveal">
+      <div class="info-card">
+        <h2>Brz katalog za svaki dan</h2>
+        <p>Kupci ne moraju da zovu radnju da pitaju cenu. Otvore katalog, izaberu grad i odmah vide šta je dostupno i šta je na akciji.</p>
+        <p>Ovaj demo je neutralan i nije zvaničan sajt nijednog marketa. Ime, boje i tekstove menjamo prema potrebi klijenta.</p>
+        <button class="btn btn-red" onclick="goToPage('products')">Pogledaj katalog</button>
+      </div>
+      <div class="info-card">
+        <h2>Prvi korak digitalizacije</h2>
+        <p>Ovakav sajt je idealan pre prave online prodavnice. Market ne mora odmah da uvodi plaćanje i dostavu, a kupci već dobijaju korisnu stvar — cene i akcije online.</p>
+        <p>Kasnije se dodaje admin panel gde radnici sami menjaju cene za svoju prodavnicu.</p>
+        <button class="btn btn-secondary" onclick="goToPage('space')">Poslovna saradnja</button>
+      </div>
+    </div>
+    <div class="stats-grid reveal">
+      <div class="stat-card"><span class="stat-num" data-target="30">0</span><div class="stat-label">demo proizvoda</div></div>
+      <div class="stat-card"><span class="stat-num" data-target="2">0</span><div class="stat-label">demo gradova</div></div>
+      <div class="stat-card"><span class="stat-num" data-target="0">0</span><div class="stat-label">online plaćanja</div></div>
+      <div class="stat-card"><span class="stat-num">24/7</span><div class="stat-label">katalog dostupan</div></div>
+    </div>
+  </section>
+
+  <!-- SPACE PAGE -->
+  <section class="page" id="page-space">
+    <div class="page-head reveal">
+      <h1>Poslovna <span style="color:var(--r)">saradnja</span></h1>
+      <p>Imate prostor za market ili vas zanima digitalizacija?</p>
+    </div>
+    <div class="section-line"></div>
+    <div class="info-grid reveal">
+      <div class="info-card">
+        <h2>Imate prostor za market?</h2>
+        <p>Ova strana služi da market može da prima ponude za nove lokacije: objekti pored prometnih ulica, lokali sa parkingom, zemljište ili magacinski prostor.</p>
+        <p>U pravoj verziji forma se povezuje sa mejlom ili bazom podataka.</p>
+        <button class="btn btn-red" onclick="showToast('Demo: forma još nije povezana.')">📤 Pošalji ponudu</button>
+      </div>
+      <div class="info-card">
+        <h2>Šta je važno za lokaciju?</h2>
+        <p style="color:#555">• Dobra lokacija i lak prilaz automobilom</p>
+        <p style="color:#555">• Mogućnost parkinga za kupce</p>
+        <p style="color:#555">• Vidljivost sa ulice ili prometnog puta</p>
+        <p style="color:#555">• Objekat pogodan za prodajni prostor</p>
+        <button class="btn btn-secondary" onclick="goToPage('locations')">📍 Pogledaj lokacije</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CART PAGE -->
+  <section class="page" id="page-cart">
+    <div class="page-head reveal">
+      <h1>Moja <span style="color:var(--r)">lista</span> za kupovinu</h1>
+      <p>Napravite spisak — odnesite u radnju. Bez online plaćanja.</p>
+    </div>
+    <div class="cart-wrap reveal">
+      <p id="emptyCart" class="empty-state">
+        <span class="empty-icon">📝</span>
+        Lista je prazna. Dodaj proizvode iz kataloga.
+      </p>
+      <ul class="cart-items" id="cartList" style="display:none"></ul>
+      <div id="cartTotal" class="cart-total" style="display:none"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px">
+        <button class="btn btn-red" onclick="clearCart()">🗑️ Obriši listu</button>
+        <button class="btn btn-secondary" onclick="copyCart()">📋 Kopiraj spisak</button>
+        <button class="btn btn-outline" onclick="goToPage('products')">← Nazad na proizvode</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Floating cart -->
+<button class="float-cart-btn" id="floatCart" onclick="goToPage('cart')">
+  🛒 Lista: <span id="floatingCartCount">0</span>
+</button>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div style="display:flex;align-items:center;gap:14px">
+        <svg width="44" height="44" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="120" height="120" rx="22" fill="#FFD100"/>
+          <path d="M16 85 L16 35 L35 60 L60 28 L85 60 L104 35 L104 85" stroke="#E30613" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="16" y="95" width="88" height="8" rx="4" fill="#E30613"/>
+        </svg>
+        <div>
+          <strong style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#FFD100;letter-spacing:-1px">MERE</strong>
+          <div style="color:#666;font-size:12px">digitalni katalog — demo verzija</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:24px;color:#666;font-size:13px">
+        <a href="#" style="color:#666;text-decoration:none" onclick="goToPage('products');return false">Proizvodi</a>
+        <a href="#" style="color:#666;text-decoration:none" onclick="goToPage('offers');return false">Akcije</a>
+        <a href="#" style="color:#666;text-decoration:none" onclick="goToPage('locations');return false">Lokacije</a>
+        <a href="#" style="color:#666;text-decoration:none" onclick="goToPage('about');return false">O nama</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 MERE digitalni katalog — demo verzija. Ovo nije zvaničan sajt nijednog marketa.</p>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"><span class="toast-icon">✅</span><span id="toastMsg"></span></div>
+
+<script>
+/* ===== DATA ===== */
+const stores=[
+  {id:'kraljevo',name:'Kraljevo',address:'Cara Lazara 12, Kraljevo 36000',hours:'08:00–21:00 svaki dan',phone:'+381 36 000 000'},
+  {id:'cacak',name:'Čačak',address:'Milunke Savić 5, Čačak 32000',hours:'08:00–21:00 svaki dan',phone:'+381 32 000 001'}
+];
+
+const cats=[
+  ['Mlečni proizvodi','🥛','Mleko, jogurt, sir, pavlaka'],
+  ['Osnovne namirnice','🛒','Ulje, brašno, šećer, so'],
+  ['Piće','🥤','Voda, sokovi, energetska pića'],
+  ['Slatkiši','🍫','Čokolade, keks, grickalice'],
+  ['Pekara','🍞','Hleb, tost, peciva'],
+  ['Kućna hemija','🧽','Deterdženti, omekšivači, sredstva'],
+  ['Higijena','🧴','Šamponi, paste, sapuni'],
+  ['Voće i povrće','🍎','Sveže voće i povrće'],
+  ['Mesne prerađevine','🍗','Pakovana mesa i prerađevine'],
+  ['Smrznuto','🍕','Smrznuta hrana']
+].map(x=>({name:x[0],icon:x[1],desc:x[2]}));
+
+const products=[
+  ['Mleko 1L','Mlečni proizvodi','1L','Dugotrajno mleko, 2.8% mlečne masti.','🥛'],
+  ['Jogurt 1kg','Mlečni proizvodi','1kg','Svež jogurt za svakodnevnu upotrebu.','🥛'],
+  ['Pavlaka 180g','Mlečni proizvodi','180g','Kisela pavlaka za obroke i pripremu hrane.','🥣'],
+  ['Sir kriška 500g','Mlečni proizvodi','500g','Beli sir za doručak i salate.','🧀'],
+  ['Ulje 1L','Osnovne namirnice','1L','Suncokretovo ulje za kuvanje i prženje.','🛢️'],
+  ['Brašno 1kg','Osnovne namirnice','1kg','Pšenično brašno za testa i kolače.','🌾'],
+  ['Šećer 1kg','Osnovne namirnice','1kg','Kristal šećer za domaćinstvo.','🍚'],
+  ['So 1kg','Osnovne namirnice','1kg','Kuhinjska so za svakodnevnu upotrebu.','🧂'],
+  ['Kafa 200g','Osnovne namirnice','200g','Mlevena kafa za domaću pripremu.','☕'],
+  ['Pirinač 1kg','Osnovne namirnice','1kg','Beli pirinač za kuvanje.','🍚'],
+  ['Testenina 500g','Osnovne namirnice','500g','Testenina za brze obroke.','🍝'],
+  ['Voda 1.5L','Piće','1.5L','Negazirana voda.','💧'],
+  ['Gazirani sok 2L','Piće','2L','Osvežavajuće gazirano piće.','🥤'],
+  ['Sok narandža 1L','Piće','1L','Voćni sok od narandže.','🧃'],
+  ['Energetsko piće 250ml','Piće','250ml','Energetsko piće u limenci.','⚡'],
+  ['Čokolada 100g','Slatkiši','100g','Mlečna čokolada.','🍫'],
+  ['Keks 300g','Slatkiši','300g','Keks za užinu i kafu.','🍪'],
+  ['Čips 150g','Slatkiši','150g','Slani čips za grickanje.','🥔'],
+  ['Hleb beli','Pekara','kom','Svež beli hleb.','🍞'],
+  ['Tost hleb 500g','Pekara','500g','Tost hleb za sendviče.','🍞'],
+  ['Deterdžent 3kg','Kućna hemija','3kg','Deterdžent za veš.','🧼'],
+  ['Omekšivač 1L','Kućna hemija','1L','Omekšivač za veš.','🧴'],
+  ['Sredstvo za sudove 750ml','Kućna hemija','750ml','Sredstvo za pranje sudova.','🧽'],
+  ['Šampon 400ml','Higijena','400ml','Šampon za kosu.','🧴'],
+  ['Pasta za zube 100ml','Higijena','100ml','Pasta za zube.','🪥'],
+  ['Jabuke 1kg','Voće i povrće','1kg','Sveže jabuke, cena po kilogramu.','🍎'],
+  ['Banane 1kg','Voće i povrće','1kg','Sveže banane.','🍌'],
+  ['Paradajz 1kg','Voće i povrće','1kg','Svež paradajz.','🍅'],
+  ['Pileća prsa 400g','Mesne prerađevine','400g','Pakovana pileća prsa.','🍗'],
+  ['Smrznuta pica 350g','Smrznuto','350g','Smrznuta pica za brzu pripremu.','🍕']
+].map((p,i)=>({id:i+1,name:p[0],category:p[1],unit:p[2],description:p[3],emoji:p[4]}));
+
+const sp={
+  kraljevo:{1:[109.99,129.99,1,1],2:[134.99,null,1,0],3:[79.99,null,1,0],4:[329.99,379.99,1,1],5:[149.99,189.99,1,1],6:[69.99,null,1,0],7:[94.99,null,1,0],8:[54.99,null,1,0],9:[229.99,269.99,1,1],10:[139.99,null,1,0],11:[84.99,null,1,0],12:[49.99,null,1,0],13:[119.99,null,0,0],14:[139.99,169.99,1,1],15:[89.99,null,1,0],16:[99.99,129.99,1,1],17:[149.99,null,1,0],18:[159.99,189.99,1,1],19:[59.99,null,1,0],20:[129.99,null,1,0],21:[549.99,649.99,0,1],22:[249.99,null,1,0],23:[159.99,199.99,1,1],24:[199.99,null,1,0],25:[169.99,null,1,0],26:[89.99,109.99,1,1],27:[139.99,null,1,0],28:[179.99,null,0,0],29:[299.99,349.99,1,1],30:[219.99,null,1,0]},
+  cacak:{1:[114.99,134.99,1,1],2:[129.99,null,1,0],3:[84.99,null,1,0],4:[339.99,null,1,0],5:[159.99,null,1,0],6:[72.99,null,1,0],7:[99.99,null,1,0],8:[57.99,null,1,0],9:[239.99,279.99,0,1],10:[144.99,null,1,0],11:[89.99,null,1,0],12:[52.99,null,1,0],13:[109.99,139.99,1,1],14:[149.99,null,1,0],15:[84.99,null,1,0],16:[104.99,null,1,0],17:[139.99,169.99,1,1],18:[164.99,null,1,0],19:[64.99,null,1,0],20:[124.99,null,0,0],21:[529.99,649.99,1,1],22:[239.99,null,1,0],23:[169.99,null,1,0],24:[209.99,null,0,0],25:[159.99,189.99,1,1],26:[94.99,119.99,1,1],27:[134.99,null,1,0],28:[169.99,null,1,0],29:[319.99,null,1,0],30:[199.99,249.99,1,1]}
+};
+
+/* ===== STATE ===== */
+let city='kraljevo', cart=[], toastTimer;
+
+/* ===== HELPERS ===== */
+const $=id=>document.getElementById(id);
+function sname(id){return stores.find(s=>s.id===id)?.name||id}
+function data(id,c=city){let d=sp[c][id]||[0,null,0,0];return{price:d[0],oldPrice:d[1],available:!!d[2],sale:!!d[3]}}
+function din(v){return v==null?'':Number(v).toLocaleString('sr-RS',{minimumFractionDigits:2,maximumFractionDigits:2})+' RSD'}
+function combined(p,c=city){return{...p,storeData:data(p.id,c),storeName:sname(c)}}
+
+/* ===== PRODUCT CARD ===== */
+function pcard(item,delay=0){
+  const d=item.storeData;
+  const sale=d.sale||d.oldPrice;
+  return `<article class="product-card" style="animation-delay:${delay}ms">
+    <div class="pcard-img">
+      <div class="pcard-badges">
+        ${sale&&d.available?'<span class="badge badge-sale">🔥 Akcija</span>':'<span></span>'}
+        ${d.available?`<span class="badge badge-green">✓ ${item.storeName}</span>`:'<span class="badge badge-unavail">Nema</span>'}
+      </div>
+      <span class="pcard-emoji">${item.emoji}</span>
+    </div>
+    <div class="pcard-body">
+      <div class="pcard-cat">${item.category} · ${item.unit}</div>
+      <div class="pcard-name">${item.name}</div>
+      <div class="pcard-desc">${item.description}</div>
+      <div class="pcard-footer">
+        <div class="price-block">
+          ${d.oldPrice?`<div class="price-old">${din(d.oldPrice)}</div>`:''}
+          <div class="price-now">${din(d.price)}</div>
+        </div>
+        <button class="add-btn" onclick="addToCart(${item.id})">${d.available?'+ Lista':'Nema'}</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function emptyState(msg){return `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🔍</span>${msg}</div>`}
+
+/* ===== FILTERS ===== */
+function opts(){
+  const o='<option value="">Sve kategorije</option>'+cats.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  $('productCategory').innerHTML=o;
+  $('offerCategory').innerHTML=o;
+}
+
+function productsFiltered(){
+  const q=$('productSearch')?.value.toLowerCase().trim()||'';
+  const cat=$('productCategory')?.value||'';
+  const mode=$('productMode')?.value||'available';
+  return products.map(p=>combined(p)).filter(i=>{
+    const d=i.storeData, s=d.sale||d.oldPrice;
+    const t=`${i.name} ${i.category} ${i.description}`.toLowerCase();
+    if(q&&!t.includes(q))return false;
+    if(cat&&i.category!==cat)return false;
+    if(mode==='available'&&!d.available)return false;
+    if(mode==='sale'&&(!s||!d.available))return false;
+    return true;
+  });
+}
+
+function offersFiltered(){
+  const q=$('offerSearch')?.value.toLowerCase().trim()||'';
+  const cat=$('offerCategory')?.value||'';
+  return products.map(p=>combined(p)).filter(i=>{
+    const d=i.storeData, s=d.sale||d.oldPrice;
+    const t=`${i.name} ${i.category} ${i.description}`.toLowerCase();
+    if(!d.available||!s)return false;
+    if(q&&!t.includes(q))return false;
+    if(cat&&i.category!==cat)return false;
+    return true;
+  });
+}
+
+/* ===== RENDER FUNCTIONS ===== */
+function renderHome(){
+  const offers=products.map(p=>combined(p)).filter(i=>i.storeData.available&&(i.storeData.sale||i.storeData.oldPrice)).slice(0,4);
+  $('homeOffersBox').innerHTML=offers.length?offers.map((p,i)=>pcard(p,i*60)):emptyState('Nema akcija za ovaj grad.');
+  const ticker=offers.slice(0,3);
+  $('heroTicker').innerHTML=ticker.length?ticker.map(i=>`
+    <li class="ticker-item">
+      <span class="ticker-name">${i.emoji} ${i.name}</span>
+      <span class="ticker-price">${din(i.storeData.price)}</span>
+    </li>`).join(''):'<li class="ticker-item"><span class="ticker-name">Nema akcija</span><span>—</span></li>';
+}
+
+function renderOffers(){
+  const items=offersFiltered();
+  $('offersBox').innerHTML=items.length?items.map((p,i)=>pcard(p,i*40)):emptyState('Nema akcijskih proizvoda za ovu pretragu.');
+}
+
+function renderProducts(){
+  const items=productsFiltered();
+  $('productsBox').innerHTML=items.length?items.map((p,i)=>pcard(p,i*30)):emptyState('Nema proizvoda za ovu pretragu.');
+}
+
+function renderCategories(){
+  $('categoriesBox').innerHTML=cats.map((c,i)=>{
+    const count=products.map(p=>combined(p)).filter(i=>i.category===c.name&&i.storeData.available).length;
+    return `<div class="cat-card" onclick="openCat('${c.name}')" style="animation:cardIn .4s ${i*50}ms ease both">
+      <div class="cat-icon">${c.icon}</div>
+      <h3>${c.name}</h3>
+      <p>${c.desc}</p>
+      <span class="cat-count">${count} dostupnih</span>
+    </div>`;
+  }).join('');
+}
+
+function renderLocations(){
+  $('locationsBox').innerHTML=stores.map(st=>{
+    const av=products.filter(p=>data(p.id,st.id).available).length;
+    const sal=products.filter(p=>{const d=data(p.id,st.id);return d.available&&(d.sale||d.oldPrice)}).length;
+    return `<div class="loc-card">
+      <div class="loc-header">
+        <h2>📍 ${st.name}</h2>
+        <p>MERE supermarket</p>
+      </div>
+      <div class="loc-body">
+        <div class="loc-info-row">
+          <span class="loc-info-icon">🗺️</span>
+          <div><div class="loc-info-label">Adresa</div><div class="loc-info-val">${st.address}</div></div>
+        </div>
+        <div class="loc-info-row">
+          <span class="loc-info-icon">⏰</span>
+          <div><div class="loc-info-label">Radno vreme</div><div class="loc-info-val">${st.hours}</div></div>
+        </div>
+        <div class="loc-info-row">
+          <span class="loc-info-icon">📞</span>
+          <div><div class="loc-info-label">Telefon</div><div class="loc-info-val">${st.phone}</div></div>
+        </div>
+        <div class="loc-stats">
+          <div class="loc-stat"><strong>${av}</strong><span>Dostupnih</span></div>
+          <div class="loc-stat"><strong>${sal}</strong><span>Akcija</span></div>
+        </div>
+        <div class="loc-actions">
+          <button class="btn btn-red btn-sm" onclick="changeCity('${st.id}');goToPage('products')">Pogledaj proizvode</button>
+          <button class="btn btn-secondary btn-sm" onclick="changeCity('${st.id}');goToPage('offers')">🔥 Akcije</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCart(){
+  if(!cart.length){
+    $('emptyCart').style.display='block';
+    $('cartList').style.display='none';
+    $('cartTotal').style.display='none';
+    updateCount();return;
+  }
+  $('emptyCart').style.display='none';
+  $('cartList').style.display='flex';
+  $('cartList').innerHTML=cart.map((item,n)=>`
+    <li class="cart-item">
+      <div class="cart-item-info">
+        <strong>${item.name}</strong>
+        <small>📍 ${item.city} · ${din(item.price)}</small>
+      </div>
+      <button class="remove-btn" onclick="removeFromCart(${n})">✕</button>
+    </li>`).join('');
+  const total=cart.reduce((s,i)=>s+Number(i.price),0);
+  $('cartTotal').style.display='block';
+  $('cartTotal').innerHTML=`📋 Okvirno ukupno: <span>${din(total)}</span>`;
+  updateCount();
+}
+
+/* ===== NAVIGATION ===== */
+function goToPage(p,push=true){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  $('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===p));
+  scrollTo({top:0,behavior:'smooth'});
+  if(push)history.pushState({page:p},'','#'+p);
+  renderFor(p);
+  setTimeout(()=>reveal(),60);
+}
+window.onpopstate=e=>goToPage(e.state?.page||'home',false);
+
+function renderFor(p){
+  const map={home:renderHome,offers:renderOffers,products:renderProducts,categories:renderCategories,locations:renderLocations,cart:renderCart};
+  map[p]?.();
+}
+
+function changeCity(c){
+  city=c;$('citySelect').value=c;
+  updateTitles();renderAll();
+  showToast('📍 Prikazujem katalog za: '+sname(c));
+}
+
+function updateTitles(){
+  const n=sname(city);
+  ['heroCityName','heroCityButton','homeCityTitle','offersCityTitle','productsCityTitle','categoriesCityTitle','promoCity']
+    .forEach(id=>{if($(id))$(id).innerText=n});
+}
+
+/* ===== CART ===== */
+function addToCart(id){
+  const p=products.find(x=>x.id===id);
+  const d=data(id);
+  if(!d.available){showToast('⚠️ Ovaj proizvod nije dostupan u '+sname(city));return}
+  cart.push({id,name:p.name,city:sname(city),price:d.price});
+  updateCount();
+  showToast('✅ '+p.name+' dodat u listu!');
+  // bounce float btn
+  const fc=$('floatCart');fc.classList.remove('bounce');void fc.offsetWidth;fc.classList.add('bounce');
+}
+
+function removeFromCart(i){cart.splice(i,1);renderCart()}
+function clearCart(){cart=[];renderCart();showToast('🗑️ Lista je obrisana')}
+function copyCart(){
+  if(!cart.length){showToast('Lista je prazna');return}
+  navigator.clipboard?.writeText(cart.map(i=>`${i.name} — ${din(i.price)} (${i.city})`).join('\n'));
+  showToast('📋 Spisak je kopiran u clipboard!');
+}
+
+function updateCount(){
+  const n=cart.length;
+  $('cartCount').textContent=n;
+  $('floatingCartCount').textContent=n;
+}
+
+/* ===== GLOBAL SEARCH ===== */
+function handleGlobalSearch(){
+  const v=$('globalSearch').value.trim();
+  if(v){
+    goToPage('products');
+    setTimeout(()=>{$('productSearch').value=v;renderProducts()},80);
+  }
+}
+
+/* ===== FILTERS ===== */
+function clearProductFilters(){$('productSearch').value='';$('productCategory').value='';$('productMode').value='available';renderProducts()}
+function clearOfferFilters(){$('offerSearch').value='';$('offerCategory').value='';renderOffers()}
+function openCat(c){goToPage('products');setTimeout(()=>{$('productSearch').value='';$('productCategory').value=c;$('productMode').value='available';renderProducts()},80)}
+
+/* ===== REVEAL ANIMATIONS ===== */
+function reveal(){
+  document.querySelectorAll('.page.active .reveal').forEach((el,i)=>{
+    setTimeout(()=>el.classList.add('visible'),i*70);
+  });
+}
+
+/* ===== COUNTER ANIMATION ===== */
+function animateCounters(){
+  document.querySelectorAll('.stat-num[data-target]').forEach(el=>{
+    const target=parseInt(el.dataset.target);
+    let cur=0;const dur=1200;const step=16;
+    const inc=target/(dur/step);
+    const t=setInterval(()=>{
+      cur+=inc;if(cur>=target){cur=target;clearInterval(t)}
+      el.textContent=Math.round(cur);
+    },step);
+  });
+}
+
+/* ===== TOAST ===== */
+function showToast(msg){
+  const t=$('toast');$('toastMsg').textContent=msg;
+  t.classList.add('show');clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+/* ===== ALL RENDER ===== */
+function renderAll(){
+  updateTitles();renderHome();renderProducts();renderOffers();
+  renderCategories();renderLocations();renderCart();
+}
+
+/* ===== SPLASH ===== */
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    $('splash').classList.add('hide');
+    setTimeout(()=>$('splash').remove(),700);
+  },1800);
+});
+
+/* ===== SCROLL REVEAL ===== */
+const revealObserver=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:.1});
+
+/* ===== INIT ===== */
+opts();
+renderAll();
+const h=location.hash.replace('#','');
+const validPages=['home','offers','products','categories','locations','about','space','cart'];
+if(validPages.includes(h))goToPage(h,false);
+else{history.replaceState({page:'home'},'','#home');goToPage('home',false)}
+setTimeout(reveal,100);
+
+// Animate counters when about page is shown
+const origGoToPage=goToPage;
+function goToPage(p,push=true){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  $('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.page===p));
+  scrollTo({top:0,behavior:'smooth'});
+  if(push)history.pushState({page:p},'','#'+p);
+  renderFor(p);
+  setTimeout(()=>{reveal();if(p==='about')animateCounters()},60);
+}
+</script>
+</body>
+</html>
